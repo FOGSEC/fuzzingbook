@@ -27,7 +27,25 @@ WORKDIR /home/$NB_USER
 RUN git clone --branch ${branch} https://github.com/uds-se/fuzzingbook.git
 RUN fix-permissions /home/$NB_USER/fuzzingbook
 
+# Clone FuzzManager and dependencies
+RUN git clone --branch version-bumps --single-branch https://github.com/MozillaSecurity/FuzzManager/
+RUN pip install ./FuzzManager
+RUN pip install -r FuzzManager/server/requirements.txt
+WORKDIR /home/$NB_USER/FuzzManager/server/
+RUN python manage.py migrate && python manage.py createsuperuser --username demo --email demo@example.com --no-input
+RUN python manage.py shell -c 'from django.contrib.auth.models import User; user = User.objects.get(username="demo"); user.set_password("demo"); user.save();'
+RUN sed -ie 's/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = \[ "0.0.0.0" \]/g' server/settings.py
+RUN fix-permissions /home/$NB_USER/FuzzManager
+
+WORKDIR /home/$NB_USER
+
 USER root
+
+# Install grcov
+RUN wget https://github.com/mozilla/grcov/releases/download/v0.3.2/grcov-linux-x86_64.tar.bz2
+RUN tar -xjf grcov-linux-x86_64.tar.bz2
+RUN mv grcov /usr/local/bin/
+RUN chmod +x /usr/local/bin/grcov
 
 # Activate nbdime and nbstripout
 #RUN nbdime config-git --enable

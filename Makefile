@@ -794,7 +794,7 @@ binder/binder.log: .FORCE
 ## Docker services (experimental)
 docker:
 	docker pull fuzzingbook/student
-	-docker run -d -p 8888:8888 --name fuzzing-book-instance fuzzingbook/student
+	-docker run -d -p 8888:8888 -p 8000:8000 --name fuzzing-book-instance fuzzingbook/student
 
 docker-start:
 	docker start fuzzing-book-instance
